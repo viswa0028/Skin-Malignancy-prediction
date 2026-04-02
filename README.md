@@ -1,73 +1,32 @@
 # Skin Malignancy Detection Model
 
 A deep learning model for detecting malignant skin lesions using convolutional neural networks. This project aims to assist dermatologists in identifying skin Malignancy.
-## Overview
-
-This repository contains a trained model and associated code for classifying skin lesions as benign or malignant. The model is built on established deep learning architectures and achieves high accuracy in identifying potentially dangerous skin conditions.
-
-## Features
-
-- **High Accuracy**: Trained on a large dataset of dermoscopic images with validated labels
-- **Fast Inference**: Optimized for quick predictions on new images
-- **Easy to Use**: Simple API for making predictions on individual images or batches
-- **Explainability**: Includes visualization tools to understand model decisions
-- **Pre-trained Weights**: Ready-to-use model without requiring retraining
-
-## Requirements
-
-- Python 3.8+
-- PyTorch
-- NumPy
-- Pillow
-- Matplotlib
-- scikit-learn
-
-## Installation
-
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/skin-malignancy-detection.git
-cd skin-malignancy-detection
-```
-
-2. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
-
-3. Download pre-trained model weights:
-```bash
-python download_model.py
-```
-
-## Quick Start
-
-## Model Architecture
-
-The model uses a [ResNet50/EfficientNet] backbone with the following specifications:
-
-- **Input Size**: 224×224 RGB images
-- **Framework**: TensorFlow/PyTorch
+## Overview 
+The initial CNN models/ Vision Transformers just take the input images and train/fine-tune their architecture and predict the output and the accuracy for those models might not be as good as desired.
+So we tackled this problem by introducing a feature fusion architecture where the model not only takes the images as the input but also captures various information from the images using Computer Vision and adds them to the training field which will further increase the knowledge background to the models.
 
 ## Dataset
 
-This model was trained on:
-- **Dataset Name**: DDI Dataset
-- **Total Images**: 600
+The dataset used was ISIC 2018 Training dataset for training. The ISIC 2018 dataset is a prominent, public repository of over 10,000 annotated dermoscopic skin lesion images released by the International Skin Imaging Collaboration (ISIC). It is widely used in medical AI research to train models for automated skin cancer diagnosis, lesion segmentation, and attribute detection, featuring seven diagnostic classes including melanoma and benign nevus. 
 
+## Features Extraction
 
-## Usage
+The feature extraction from the images are like mean,standard deviation and so on using computer Vision and integrating them to the dataset original dataset and fine tuning the vision transformers to increase the accuracy prediction of the models.
 
-### Command Line
+## Tech Stack
 
-```bash
-python predict.py --image path/to/image.jpg
-python predict.py --directory path/to/images/ --output results.csv
-```
+The Tech Stack used for developing this pipeline was:
+ - torch
+ - scikit-learn
+ - Pillow
+ - numpy<2
+ - opencv-python
+ - pandas
 
-## Contributing
+## Conclusion
+By adding these additional features and training the Vision Transformers we have seen an increase the accuracy by over 8-10% and the final overall accuracy for some models are reaching over 94% which is a very good performance for prediction of the skin cancer and could be used in real time.
 
-We welcome contributions!
-- Reporting issues
-- Submitting pull requests
-- Code standards
+## Future Directions
+
+ -  The models could be further introduced with multiple more features to increase the accuracy further than now.
+ -  Deploying the model and using them in real time.
