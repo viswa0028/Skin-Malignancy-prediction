@@ -4,7 +4,8 @@ A deep learning model for detecting malignant skin lesions using convolutional n
 ## Overview 
 The initial CNN models/ Vision Transformers just take the input images and train/fine-tune their architecture and predict the output and the accuracy for those models might not be as good as desired.
 So we tackled this problem by introducing a feature fusion architecture where the model not only takes the images as the input but also captures various information from the images using Computer Vision and adds them to the training field which will further increase the knowledge background to the models.
-
+## Video Link
+The link consists of the implementation of the model: https://drive.google.com/file/d/1GbGGQOyJAD0zzLkalNF2SCeBjp6MKIme/view?usp=sharing
 ## Dataset
 
 The dataset used was ISIC 2018 Training dataset for training. The ISIC 2018 dataset is a prominent, public repository of over 10,000 annotated dermoscopic skin lesion images released by the International Skin Imaging Collaboration (ISIC). It is widely used in medical AI research to train models for automated skin cancer diagnosis, lesion segmentation, and attribute detection, featuring seven diagnostic classes including melanoma and benign nevus. 
