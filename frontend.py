@@ -57,16 +57,10 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 
-# ── Model registry ────────────────────────────────────────────────────────────
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Each entry: (display_label, abs_path, model_type)
-# model_type: "fusion"  → CNNTabularFusion  (image + skin features)
-#             "resnet"  → ResNet18 image-only
-#             "densenet"→ DenseNet121 image-only
-#             "inception"→ InceptionV3 image-only
 MODEL_REGISTRY: list[tuple[str, str, str]] = [
-    # ── Best Feature Fusion checkpoints ──────────────────────────────────────
+
     (
         "⭐ ResNet18 + Skin Fusion  [Best]",
         os.path.join(BASE_DIR, "Best feature Fusion Paths", "best_resnet_model.pth"),
@@ -87,7 +81,6 @@ MODEL_REGISTRY: list[tuple[str, str, str]] = [
         os.path.join(BASE_DIR, "Best feature Fusion Paths", "Ensemble_with.pth"),
         "fusion_resnet",          # ensemble saved as resnet-based fusion head
     ),
-    # ── Normal (image-only) checkpoints ──────────────────────────────────────
     (
         "ResNet18  [Image-only]",
         os.path.join(BASE_DIR, "Normal Fusion Paths", "normal_resnet.pth"),
@@ -105,13 +98,12 @@ MODEL_REGISTRY: list[tuple[str, str, str]] = [
     ),
 ]
 
-# Filter to only models whose .pth actually exists on disk
+
 AVAILABLE_MODELS = [m for m in MODEL_REGISTRY if os.path.exists(m[1])]
 MODEL_LABELS = [m[0] for m in AVAILABLE_MODELS]
 
 
-# ── Architecture classes ──────────────────────────────────────────────────────
-NUM_FEATURES = 15   # fixed by feature_extraction.py output
+NUM_FEATURES = 15   
 
 
 class FusionResNet(nn.Module):
@@ -145,7 +137,6 @@ class FusionDenseNet(nn.Module):
     def __init__(self, num_skin_features: int):
         super().__init__()
         base = models.densenet121(weights=None)
-        # keep everything except classifier
         self.features = base.features
         self.skin_mlp = nn.Sequential(
             nn.Linear(num_skin_features, 64),
@@ -249,8 +240,6 @@ def build_architecture(model_type: str) -> nn.Module:
     else:
         raise ValueError(f"Unknown model type: {model_type}")
 
-
-# ── Feature extraction (mirrors feature_extraction.py) ───────────────────────
 def extract_skin_mask(img_bgr: np.ndarray) -> np.ndarray:
     hsv = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2HSV)
     lower = np.array([0, 20, 70], dtype=np.uint8)
@@ -306,7 +295,7 @@ def extract_features(pil_image: Image.Image) -> dict:
     }
 
 
-# ── Transform ─────────────────────────────────────────────────────────────────
+
 IMG_TRANSFORM_224 = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.ToTensor(),
@@ -314,7 +303,6 @@ IMG_TRANSFORM_224 = transforms.Compose([
                          std=[0.229, 0.224, 0.225]),
 ])
 
-# InceptionV3 requires 299×299
 IMG_TRANSFORM_299 = transforms.Compose([
     transforms.Resize((299, 299)),
     transforms.ToTensor(),
@@ -327,7 +315,6 @@ def get_transform(model_type: str):
     return IMG_TRANSFORM_299 if "inception" in model_type else IMG_TRANSFORM_224
 
 
-# ── Model loader (cached per path) ────────────────────────────────────────────
 @st.cache_resource
 def load_model(weights_path: str, model_type: str):
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -336,7 +323,6 @@ def load_model(weights_path: str, model_type: str):
     if weights_path and os.path.exists(weights_path):
         try:
             state = torch.load(weights_path, map_location=device)
-            # handle both raw state-dict and checkpoint dicts
             if isinstance(state, dict) and "model_state_dict" in state:
                 state = state["model_state_dict"]
             net.load_state_dict(state, strict=False)
@@ -346,8 +332,6 @@ def load_model(weights_path: str, model_type: str):
     net.eval()
     return net, device, weights_ok
 
-
-# ── Sidebar ───────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("## ⚙️ Configuration")
 
@@ -364,7 +348,6 @@ with st.sidebar:
         selected_idx = MODEL_LABELS.index(selected_label)
         _, sel_path, sel_type = AVAILABLE_MODELS[selected_idx]
 
-        # Show badge info
         kind = "Skin-Fusion" if is_fusion_type(sel_type) else "Image-Only"
         badge_cls = "badge-fusion" if is_fusion_type(sel_type) else "badge-image"
         st.markdown(
@@ -387,11 +370,10 @@ with st.sidebar:
     st.caption("⚠️ Research demo only. Not a medical device.")
 
 
-# ── Main UI ───────────────────────────────────────────────────────────────────
 st.markdown("# 🔬 Skin Lesion Malignancy Detector")
 st.markdown("Upload a dermoscopy image. Select a model from the sidebar and run inference.")
 
-# pipeline indicator
+
 cols_pipe = st.columns(5)
 pipe_labels = ["1 · Upload", "2 · Extract features", "3 · CNN encode", "4 · Fusion MLP", "5 · Predict"]
 pipe_placeholders = [c.empty() for c in cols_pipe]
@@ -410,7 +392,6 @@ draw_pipeline(-1)
 
 st.markdown("---")
 
-# ── Upload ────────────────────────────────────────────────────────────────────
 uploaded = st.file_uploader(
     "Drop a dermoscopy image (JPEG / PNG)",
     type=["jpg", "jpeg", "png"],
@@ -426,7 +407,6 @@ if uploaded and selected_idx is not None:
 
     left, right = st.columns([1, 1], gap="large")
 
-    # ── Left: image + features ────────────────────────────────────────────────
     with left:
         st.markdown("#### Input image")
         st.image(pil_img, use_container_width=True)
@@ -452,7 +432,6 @@ if uploaded and selected_idx is not None:
             st.info("ℹ️ Image-only model — skin feature extraction skipped.")
             feat_names, feat_vals = [], []
 
-    # ── Right: inference ──────────────────────────────────────────────────────
     with right:
         st.markdown("#### Prediction")
 
@@ -495,14 +474,12 @@ if uploaded and selected_idx is not None:
             )
             st.markdown("<br>", unsafe_allow_html=True)
 
-            # Probability gauge
             st.markdown("**Malignancy probability**")
             st.progress(prob)
             st.markdown(f"**{prob:.4f}**  *(threshold: {threshold:.2f})*")
 
             st.markdown("<br>", unsafe_allow_html=True)
 
-            # Metric grid
             c1, c2, c3 = st.columns(3)
             with c1:
                 st.markdown(f'<div class="metric-box"><div class="metric-label">Probability</div><div class="metric-value">{prob:.3f}</div></div>', unsafe_allow_html=True)
